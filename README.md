@@ -72,8 +72,10 @@ dependencies:
   shared_preferences: ^2.2.3
   socket_io_client: ^2.0.3+1
 🛠️ RUNNING PROJECT
-##Terminal 1 → Backend
+
+#Terminal 1 → Backend
 cd backend
 npm run dev
-##Terminal 2 → Flutter
+
+#Terminal 2 → Flutter
 flutter run
