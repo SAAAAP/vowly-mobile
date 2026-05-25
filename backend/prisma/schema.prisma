@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  BRIDE
+  VENDOR
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  BOOKED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String?
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  vendorProfile VendorProfile?
+  brideProfile  BrideProfile?
+}
+
+model BrideProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  weddingDate DateTime?
+  location    String?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VendorProfile {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  businessName  String
+  category      String
+  description   String?
+  address       String?
+  verification  Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+
+  portfolios VendorPortfolio[]
+  packages   Package[]
+}
+
+model VendorPortfolio {
+  id          Int    @id @default(autoincrement())
+  vendorId    Int
+  imageUrl    String
+  description String?
+
+  vendor VendorProfile @relation(fields: [vendorId], references: [id])
+}
+
+model Package {
+  id          Int      @id @default(autoincrement())
+  vendorId    Int
+  name        String
+  description String?
+  price       Float
+
+  vendor VendorProfile @relation(fields: [vendorId], references: [id])
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  brideId   Int
+  vendorId  Int
+  createdAt DateTime  @default(now())
+
+  messages Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  senderId  Int
+  message   String
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id])
+}
+
+model Booking {
+  id           Int            @id @default(autoincrement())
+  brideId      Int
+  vendorId     Int
+  agreedPrice  Float
+  bookingDate  DateTime
+  status       BookingStatus @default(PENDING)
+
+  payment Payment?
+}
+
+model Payment {
+  id            Int            @id @default(autoincrement())
+  bookingId     Int            @unique
+  totalAmount   Float
+  adminFee      Float
+  vendorAmount  Float
+  status        PaymentStatus  @default(PENDING)
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+model FavoriteVendor {
+  id        Int      @id @default(autoincrement())
+  brideId   Int
+  vendorId  Int
+  createdAt DateTime @default(now())
+}
+
+model WeddingChecklist {
+  id        Int      @id @default(autoincrement())
+  brideId   Int
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
